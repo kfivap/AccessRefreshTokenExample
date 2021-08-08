@@ -23,12 +23,17 @@ exports.login = async ({ login, password }) => {
     if (!user) {
         throw unauthorized('');
     }
-    const accessToken = jwt.signAccess({userId: user._id});   
+
+    const sessionId = v4();
+    const accessToken = jwt.signAccess({userId: user._id, sessionId});   
     const refreshToken = jwt.signRefresh({userId: user._id});
 
     await Auth.updateOne({userId: user._id}, 
-        { $push: { 'sessions': [{sessionId: v4(), refreshToken}] }, 
-            accessToken },
+        { 
+            $push: { 'sessions': 
+            [{sessionId, refreshToken, accessToken}] 
+            }, 
+        },
     );
 
     //for test
@@ -56,7 +61,7 @@ exports.refresh = async (token)=>{
     if (result.error) throw unauthorized(result.error);
 
     const newRefreshToken = jwt.signRefresh({userId});
-    const newAccessToken = jwt.signAccess({userId, sessionId: userSession._id});
+    const newAccessToken = jwt.signAccess({userId, sessionId: userSession.sessionId});
 
     await Auth.updateOne({userId, 'sessions.refreshToken': token }, {$set: {
         'sessions.$.refreshToken': newRefreshToken, }
@@ -69,15 +74,15 @@ exports.refresh = async (token)=>{
     });
 
     return {
-        data: {refreshToken: newRefreshToken, accessToken: newAccessToken}
+        data: {refreshToken: newRefreshToken, accessToken: newAccessToken, sessionId: userSession.sessionId}
     };
 };
 
 exports.clearAllSessions = async (token)=>{
     const tokenData = jwt.decode(token);
-    console.log(tokenData);
+    console.log('tokenData', tokenData);
 
-    await Auth.updateMany({userId: tokenData.userId}, { $pull: { sessions: { '_id': {$ne: tokenData.sessionId} } }}, function(err, res) {
+    await Auth.updateMany({userId: tokenData.userId}, { $pull: { sessions: { 'sessionId': {$ne: tokenData.sessionId} } }}, function(err, res) {
         console.log(err, res);
     });
     return {data: null};

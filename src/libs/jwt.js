@@ -10,7 +10,7 @@ exports.decode = (token) =>{
 exports.signAccess = ({userId, sessionId})=>{
     if (!userId) throw 'not found';
     return jwt.sign({ data: 'someData', type: 'access', userId, sessionId}, accessKey, {
-        algorithm: 'HS256', expiresIn: '1m'
+        algorithm: 'HS256', expiresIn: '30m'
     });
 };
 

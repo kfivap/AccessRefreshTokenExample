@@ -6,10 +6,10 @@ const authSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    accessToken: String, //
-
     sessions: [{
+        sessionId: String,
         refreshToken: String,
+        accessToken: String,
     }]
 
 });

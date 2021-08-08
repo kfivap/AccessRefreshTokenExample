@@ -37,7 +37,7 @@ router.get('/onlyAuth', authMiddleware, async (_req, res, next)=>{
     }
 });
 
-router.post('/clearAllSessions', async (req, res, next)=>{
+router.post('/clearAllSessions', authMiddleware, async (req, res, next)=>{
     try {
         const data = await userController.clearAllSessions(req.headers['x-access-token']);
         res.send(data);
